@@ -116,10 +116,10 @@ class TestInitBranch:
 
     def test_all_required_fields(self):
         """Test that all required fields are actually required."""
-        required_fields = {
-            "bhfId", "bhfNm", "bhfOpenDt", "prvncNm", "dstrtNm",
-            "sctrNm", "locDesc", "hqYn", "mgrNm", "mgrTelNo", "mgrEmail"
-        }
+        # required_fields = {
+        #     "bhfId", "bhfNm", "bhfOpenDt", "prvncNm", "dstrtNm",
+        #     "sctrNm", "locDesc", "hqYn", "mgrNm", "mgrTelNo", "mgrEmail"
+        # }
         partial_data = {
             "bhfId": "BRN001",
             "bhfNm": "Main Branch",
@@ -287,4 +287,3 @@ class TestInitInfoResponse:
         response = InitInfoResponse.model_validate(data)
         assert response.resultCd == "00"
         assert response.data.info.taxpayer.tin == "123456789"
-
