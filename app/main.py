@@ -4,8 +4,6 @@ This module configures the FastAPI app and wires together the external VSCU
 client and the initialization workflow used by the platform.
 """
 
-import os
-from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from app.clients.vscu_client import VSCUClient
@@ -17,7 +15,7 @@ from app.services.initialization import InitializationService
 app = FastAPI(title="eTIMS Integrator")
 
 vscu_client = VSCUClient(
-    base_url = VSCU_BASE_URL
+    base_url=VSCU_BASE_URL
 )
 
 initialization_service = InitializationService(
