@@ -1,7 +1,7 @@
 """HTTP client for communicating with the VSCU service.
 
-This client encapsulates the details of the initialization endpoint used by the
-integrator when registering or initializing a device.
+This client encapsulates the details of the initialization endpoint used by
+the integrator when registering or initializing a device.
 """
 
 import httpx
@@ -29,7 +29,8 @@ class VSCUClient:
             The decoded JSON response returned by the upstream API.
 
         Raises:
-            httpx.HTTPStatusError: If the remote service responds with an error.
+            httpx.HTTPStatusError: If the remote service responds with an
+            error.
         """
         url = f"{self.base_url}/initializer/selectInitInfo"
 
@@ -40,7 +41,6 @@ class VSCUClient:
             )
 
         response.raise_for_status()
-
 
         return InitInfoResponse.model_validate(
             response.json()

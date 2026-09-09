@@ -8,9 +8,6 @@ from app.clients.vscu_client import VSCUClient
 from app.models.initialization import (
     InitInfoRequest,
     InitInfoResponse,
-    InitTaxpayer,
-    InitBranch,
-    InitDevice,
 )
 
 
@@ -44,7 +41,9 @@ class TestInitializationServiceInit:
 class TestInitializationServiceInitialize:
     """Tests for the InitializationService.initialize method."""
 
-    async def test_successful_initialization(self, initialization_service, mock_vscu_client):
+    async def test_successful_initialization(
+        self, initialization_service, mock_vscu_client
+    ):
         """Test successful initialization."""
         request = InitInfoRequest(
             tin="123456789",
@@ -95,7 +94,9 @@ class TestInitializationServiceInitialize:
         assert response.data.info.device.dvcId == "DEVICE001"
         mock_vscu_client.initialize.assert_called_once()
 
-    async def test_request_payload_conversion(self, initialization_service, mock_vscu_client):
+    async def test_request_payload_conversion(
+        self, initialization_service, mock_vscu_client
+    ):
         """Test that request is correctly converted to payload."""
         request = InitInfoRequest(
             tin="123456789",
@@ -147,7 +148,9 @@ class TestInitializationServiceInitialize:
         assert payload["bhfId"] == "BRN001"
         assert payload["dvcSrlNo"] == "DEVICE001"
 
-    async def test_response_returned_unchanged(self, initialization_service, mock_vscu_client):
+    async def test_response_returned_unchanged(
+        self, initialization_service, mock_vscu_client
+    ):
         """Test that service returns client response unchanged."""
         request = InitInfoRequest(
             tin="123456789",
@@ -196,7 +199,9 @@ class TestInitializationServiceInitialize:
         assert response == mock_response
         assert response.data.info.device.lastPchsInvcNo == 50
 
-    async def test_different_request_payloads(self, initialization_service, mock_vscu_client):
+    async def test_different_request_payloads(
+        self, initialization_service, mock_vscu_client
+    ):
         """Test service with different request payloads."""
         test_cases = [
             {

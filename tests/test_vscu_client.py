@@ -79,7 +79,9 @@ class TestVSCUClientInitialize:
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
-            mock_client_class.return_value.__aenter__.return_value = mock_client
+            mock_client_class.return_value.__aenter__.return_value = (
+                mock_client
+                )
 
             mock_response = MagicMock()
             mock_response.json.return_value = mock_response_data
@@ -104,7 +106,9 @@ class TestVSCUClientInitialize:
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
-            mock_client_class.return_value.__aenter__.return_value = mock_client
+            mock_client_class.return_value.__aenter__.return_value = (
+                mock_client
+                )
 
             mock_response = MagicMock()
             mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
@@ -158,7 +162,9 @@ class TestVSCUClientInitialize:
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
-            mock_client_class.return_value.__aenter__.return_value = mock_client
+            mock_client_class.return_value.__aenter__.return_value = (
+                mock_client
+                )
 
             mock_response = MagicMock()
             mock_response.json.return_value = mock_response_data
@@ -214,7 +220,9 @@ class TestVSCUClientInitialize:
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
-            mock_client_class.return_value.__aenter__.return_value = mock_client
+            mock_client_class.return_value.__aenter__.return_value = (
+                mock_client
+                )
 
             mock_response = MagicMock()
             mock_response.json.return_value = mock_response_data

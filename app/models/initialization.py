@@ -10,7 +10,8 @@ class InitInfoRequest(BaseModel):
     Attributes:
         tin: Taxpayer identification number.
         bhfId: Business or branch identifier supplied by the integrator.
-        dvcSrlNo: Device serial number associated with the initialization request.
+        dvcSrlNo: Device serial number associated with the initialization
+        request.
     """
 
     tin: str

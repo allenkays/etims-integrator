@@ -2,7 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch
 
 from app.main import app
 from app.models.initialization import InitInfoResponse
@@ -61,7 +61,10 @@ class TestInitializeEndpoint:
             "dvcSrlNo": "DEVICE001"
         }
 
-        with patch("app.main.initialization_service.initialize", new_callable=AsyncMock) as mock_init:
+        with patch(
+            "app.main.initialization_service.initialize",
+            new_callable=AsyncMock
+        ) as mock_init:
             mock_init.return_value = sample_init_response
 
             response = client.post("/initialize", json=payload)
@@ -118,7 +121,8 @@ class TestInitializeEndpoint:
             headers={"Content-Type": "application/json"}
         )
 
-        assert response.status_code in [400, 422]  # Bad request or validation error
+        # Bad request or validation error
+        assert response.status_code in [400, 422]
 
     def test_response_serialization(self, client, sample_init_response):
         """Test that response is properly serialized."""
@@ -128,7 +132,10 @@ class TestInitializeEndpoint:
             "dvcSrlNo": "DEVICE001"
         }
 
-        with patch("app.main.initialization_service.initialize", new_callable=AsyncMock) as mock_init:
+        with patch(
+            "app.main.initialization_service.initialize",
+            new_callable=AsyncMock
+        ) as mock_init:
             mock_init.return_value = sample_init_response
 
             response = client.post("/initialize", json=payload)
@@ -154,7 +161,9 @@ class TestInitializeEndpoint:
 
             # Verify taxpayer data
             assert data["data"]["info"]["taxpayer"]["tin"] == "123456789"
-            assert data["data"]["info"]["taxpayer"]["taxprNm"] == "Example Company"
+            assert (
+                data["data"]["info"]["taxpayer"]["taxprNm"]
+                ) == "Example Company"
 
             # Verify branch data
             assert data["data"]["info"]["branch"]["bhfId"] == "BRN001"
@@ -210,14 +219,19 @@ class TestInitializeEndpoint:
                 }
             )
 
-            with patch("app.main.initialization_service.initialize", new_callable=AsyncMock) as mock_init:
+            with patch(
+                "app.main.initialization_service.initialize",
+                new_callable=AsyncMock
+            ) as mock_init:
                 mock_init.return_value = response_data
 
                 response = client.post("/initialize", json=payload)
 
                 assert response.status_code == 200
                 data = response.json()
-                assert data["data"]["info"]["taxpayer"]["tin"] == payload["tin"]
+                assert data["data"]["info"]["taxpayer"]["tin"] == (
+                    payload["tin"]
+                )
 
     def test_special_characters_in_fields(self, client):
         """Test initialization with special characters in fields."""
@@ -258,7 +272,10 @@ class TestInitializeEndpoint:
             }
         )
 
-        with patch("app.main.initialization_service.initialize", new_callable=AsyncMock) as mock_init:
+        with patch(
+            "app.main.initialization_service.initialize",
+            new_callable=AsyncMock
+        ) as mock_init:
             mock_init.return_value = response_data
 
             response = client.post("/initialize", json=payload)
@@ -285,7 +302,10 @@ class TestInitializeEndpoint:
         )
 
         # Correct path
-        with patch("app.main.initialization_service.initialize", new_callable=AsyncMock) as mock_init:
+        with patch(
+            "app.main.initialization_service.initialize",
+            new_callable=AsyncMock
+        ) as mock_init:
             mock_init.return_value = response_data
 
             response = client.post("/initialize", json={
