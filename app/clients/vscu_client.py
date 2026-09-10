@@ -5,6 +5,7 @@ the integrator when registering or initializing a device.
 """
 
 import httpx
+from app.models.code import CodeResponse
 from app.models.initialization import InitInfoResponse
 
 
@@ -43,5 +44,32 @@ class VSCUClient:
         response.raise_for_status()
 
         return InitInfoResponse.model_validate(
+            response.json()
+        )
+
+    async def get_codes(self, payload: dict) -> CodeResponse:
+        """Send a request to the VSCU selectCode endpoint.
+
+        Args:
+            payload: JSON payload containing the code request data.
+
+        Returns:
+            The decoded JSON response returned by the upstream API.
+
+        Raises:
+            httpx.HTTPStatusError: If the remote service responds with an
+            error.
+        """
+        url = f"{self.base_url}/code/selectCode"
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url,
+                json=payload
+            )
+
+        response.raise_for_status()
+
+        return CodeResponse.model_validate(
             response.json()
         )
