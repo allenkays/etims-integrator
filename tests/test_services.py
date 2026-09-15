@@ -8,8 +8,15 @@ from app.models.initialization import (
     InitInfoRequest,
     InitInfoResponse,
 )
+from app.models.item_classification import (
+    ItemClassificationRequest,
+    ItemClassificationResponse,
+)
 from app.services.code import CodeService
 from app.services.initialization import InitializationService
+from app.services.item_classification import (
+    ItemClassificationService,
+)
 
 
 @pytest.fixture
@@ -372,3 +379,81 @@ class TestCodeService:
         response = await code_service.get_codes(request)
 
         assert response == mock_response
+
+
+@pytest.fixture
+def item_classification_service(mock_vscu_client):
+    """Create an ItemClassificationService with a mocked client."""
+    return ItemClassificationService(
+        vscu_client=mock_vscu_client
+    )
+
+
+class TestItemClassificationService:
+    @pytest.mark.asyncio
+    async def test_get_item_classifications(
+        self,
+        item_classification_service,
+        mock_vscu_client,
+    ):
+        """Test getting item classifications."""
+        request = ItemClassificationRequest(
+            tin="A123456789Z",
+            bhfId="00",
+            lastReqDt="20180523000000",
+        )
+
+        expected_response = ItemClassificationResponse(
+            resultCd="000",
+            resultMsg="Successful",
+            resultDt="20260915190000",
+            data=[],
+        )
+
+        mock_vscu_client.get_item_classifications = AsyncMock(
+            return_value=expected_response
+        )
+
+        result = await (
+            item_classification_service.get_item_classifications(
+                request
+            )
+        )
+
+        assert result is expected_response
+
+    @pytest.mark.asyncio
+    async def test_request_is_converted_to_payload(
+        self,
+        item_classification_service,
+        mock_vscu_client,
+    ):
+        """Test that the request is converted to a dictionary payload."""
+        request = ItemClassificationRequest(
+            tin="A123456789Z",
+            bhfId="00",
+            lastReqDt="20180523000000",
+        )
+
+        expected_response = ItemClassificationResponse(
+            resultCd="000",
+            resultMsg="Successful",
+            resultDt="20260915190000",
+            data=[],
+        )
+
+        mock_vscu_client.get_item_classifications = AsyncMock(
+            return_value=expected_response
+        )
+
+        await item_classification_service.get_item_classifications(
+            request
+        )
+
+        mock_vscu_client.get_item_classifications.assert_awaited_once_with(
+            {
+                "tin": "A123456789Z",
+                "bhfId": "00",
+                "lastReqDt": "20180523000000",
+            }
+        )
