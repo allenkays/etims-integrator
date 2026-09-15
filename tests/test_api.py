@@ -8,6 +8,7 @@ from app.main import app
 from app.models.code import CodeResponse
 from app.models.initialization import InitInfoResponse
 from app.models.item_classification import (
+    ItemClassificationData,
     ItemClassificationResponse,
 )
 
@@ -457,7 +458,7 @@ def sample_item_classification_response():
         resultCd="000",
         resultMsg="Successful",
         resultDt="20260915190000",
-        data=[],
+        data=ItemClassificationData(itemClsList=[])
     )
 
 
