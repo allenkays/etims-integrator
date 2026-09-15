@@ -8,6 +8,7 @@ from app.clients.vscu_client import VSCUClient
 from app.models.code import CodeResponse
 from app.models.initialization import InitInfoResponse
 from app.models.item_classification import (
+    ItemClassificationData,
     ItemClassificationResponse,
 )
 
@@ -375,7 +376,7 @@ class TestVSCUClientItemClassifications:
             "resultCd": "000",
             "resultMsg": "Successful",
             "resultDt": "20260915190000",
-            "data": [],
+            "data": ItemClassificationData(itemClsList=[]),
         }
 
         with patch("httpx.AsyncClient.post") as mock_post:
@@ -390,7 +391,7 @@ class TestVSCUClientItemClassifications:
 
         assert isinstance(result, ItemClassificationResponse)
         assert result.resultCd == "000"
-        assert result.data == []
+        assert result.data == ItemClassificationData(itemClsList=[])
 
     @pytest.mark.asyncio
     async def test_correct_item_classification_url(
@@ -409,7 +410,7 @@ class TestVSCUClientItemClassifications:
                 "resultCd": "000",
                 "resultMsg": "Successful",
                 "resultDt": "20260915190000",
-                "data": [],
+                "data": ItemClassificationData(itemClsList=[]),
             }
             mock_response.raise_for_status.return_value = None
             mock_post.return_value = mock_response

@@ -9,6 +9,7 @@ from app.models.initialization import (
     InitInfoResponse,
 )
 from app.models.item_classification import (
+    ItemClassificationData,
     ItemClassificationRequest,
     ItemClassificationResponse,
 )
@@ -407,7 +408,9 @@ class TestItemClassificationService:
             resultCd="000",
             resultMsg="Successful",
             resultDt="20260915190000",
-            data=[],
+            data=ItemClassificationData(
+                itemClsList=[]
+            ),
         )
 
         mock_vscu_client.get_item_classifications = AsyncMock(
@@ -439,7 +442,9 @@ class TestItemClassificationService:
             resultCd="000",
             resultMsg="Successful",
             resultDt="20260915190000",
-            data=[],
+            data=ItemClassificationData(
+                itemClsList=[]
+            ),
         )
 
         mock_vscu_client.get_item_classifications = AsyncMock(
