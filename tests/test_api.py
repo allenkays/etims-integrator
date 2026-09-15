@@ -7,6 +7,9 @@ from unittest.mock import AsyncMock, patch
 from app.main import app
 from app.models.code import CodeResponse
 from app.models.initialization import InitInfoResponse
+from app.models.item_classification import (
+    ItemClassificationResponse,
+)
 
 
 @pytest.fixture
@@ -445,3 +448,86 @@ class TestCodesEndpoint:
         response = client.post("/codes", json={})
 
         assert response.status_code == 422
+
+
+@pytest.fixture
+def sample_item_classification_response():
+    """Create a sample ItemClassificationResponse for testing."""
+    return ItemClassificationResponse(
+        resultCd="000",
+        resultMsg="Successful",
+        resultDt="20260915190000",
+        data=[],
+    )
+
+
+class TestItemClassificationEndpoint:
+    def test_get_item_classifications(
+        self, client,
+        sample_item_classification_response,
+    ):
+        """Test successful item classification request."""
+        with patch(
+            "app.main.item_classification_service"
+            ".get_item_classifications",
+            new_callable=AsyncMock,
+        ) as mock_service:
+
+            mock_service.return_value = (
+                sample_item_classification_response
+            )
+
+            response = client.post(
+                "/item-classifications",
+                json={
+                    "tin": "A123456789Z",
+                    "bhfId": "00",
+                    "lastReqDt": "20180523000000",
+                },
+            )
+
+        assert response.status_code == 200
+        assert response.json()["resultCd"] == "000"
+        assert response.json()["resultMsg"] == "Successful"
+
+    def test_missing_tin(self, client):
+        """Test item classification request with missing tin."""
+        response = client.post(
+            "/item-classifications",
+            json={
+                "bhfId": "00",
+                "lastReqDt": "20180523000000",
+            },
+        )
+
+        assert response.status_code == 422
+
+    def test_missing_bhf_id(self, client):
+        """Test item classification request with missing bhfId."""
+        response = client.post(
+            "/item-classifications",
+            json={
+                "tin": "A123456789Z",
+                "lastReqDt": "20180523000000",
+            },
+        )
+
+        assert response.status_code == 422
+
+    def test_missing_last_request_date(self, client):
+        """Test item classification request with missing lastReqDt."""
+        response = client.post(
+            "/item-classifications",
+            json={
+                "tin": "A123456789Z",
+                "bhfId": "00",
+            },
+        )
+
+        assert response.status_code == 422
+
+    def test_get_method_not_allowed(self, client):
+        """Test that GET method is not allowed for item classifications."""
+        response = client.get("/item-classifications")
+
+        assert response.status_code == 405

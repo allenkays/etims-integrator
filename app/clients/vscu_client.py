@@ -7,6 +7,9 @@ the integrator when registering or initializing a device.
 import httpx
 from app.models.code import CodeResponse
 from app.models.initialization import InitInfoResponse
+from app.models.item_classification import (
+    ItemClassificationResponse,
+)
 
 
 class VSCUClient:
@@ -71,5 +74,35 @@ class VSCUClient:
         response.raise_for_status()
 
         return CodeResponse.model_validate(
+            response.json()
+        )
+
+    async def get_item_classifications(
+        self, payload: dict
+    ) -> ItemClassificationResponse:
+        """Send a request to the VSCU selectItemCls endpoint.
+
+        Args:
+            payload: JSON payload containing the item classification request
+            data.
+
+        Returns:
+            The decoded JSON response returned by the upstream API.
+
+        Raises:
+            httpx.HTTPStatusError: If the remote service responds with an
+            error.
+        """
+        url = f"{self.base_url}/itemClass/selectItemsClass"
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url,
+                json=payload
+            )
+
+        response.raise_for_status()
+
+        return ItemClassificationResponse.model_validate(
             response.json()
         )
