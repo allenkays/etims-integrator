@@ -18,6 +18,7 @@ from app.models.initialization import (
 )
 from app.models.item_classification import (
     ItemClassification,
+    ItemClassificationData,
     ItemClassificationRequest,
     ItemClassificationResponse,
 )
@@ -410,6 +411,7 @@ class TestCodeModels:
 
 class TestItemClassificationModels:
     """Tests for the Item Classification models."""
+
     def test_request_model(self):
         """Test creating an ItemClassificationRequest."""
         request = ItemClassificationRequest(
@@ -429,12 +431,16 @@ class TestItemClassificationModels:
             itemClsNm="Test Classification",
             itemClsLvl=1,
             taxTyCd="A",
+            mjrTgYn="Y",
+            useYn="Y",
         )
 
         assert item_classification.itemClsCd == "1010101"
         assert item_classification.itemClsNm == "Test Classification"
         assert item_classification.itemClsLvl == 1
         assert item_classification.taxTyCd == "A"
+        assert item_classification.mjrTgYn == "Y"
+        assert item_classification.useYn == "Y"
 
     def test_response_model(self):
         """Test creating an ItemClassificationResponse."""
@@ -442,18 +448,22 @@ class TestItemClassificationModels:
             resultCd="000",
             resultMsg="Successful",
             resultDt="20260915190000",
-            data=[
-                ItemClassification(
-                    itemClsCd="1010101",
-                    itemClsNm="Test Classification",
-                    itemClsLvl=1,
-                    taxTyCd="A",
-                )
-            ],
+            data=ItemClassificationData(
+                itemClsList=[
+                    ItemClassification(
+                        itemClsCd="1010101",
+                        itemClsNm="Test Classification",
+                        itemClsLvl=1,
+                        taxTyCd="A",
+                        mjrTgYn="Y",
+                        useYn="Y",
+                    )
+                ]
+            )
         )
 
         assert response.resultCd == "000"
         assert response.resultMsg == "Successful"
         assert response.data is not None
-        assert len(response.data) == 1
-        assert response.data[0].itemClsCd == "1010101"
+        assert len(response.data.itemClsList) == 1
+        assert response.data.itemClsList[0].itemClsCd == "1010101"

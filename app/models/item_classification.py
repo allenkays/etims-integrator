@@ -13,13 +13,20 @@ class ItemClassificationRequest(BaseModel):
 
 
 class ItemClassification(BaseModel):
-    """
-    A model representing an item classification.
-    """
+    """ A model representing an item classification."""
     itemClsCd: str
     itemClsNm: str
     itemClsLvl: int
     taxTyCd: Optional[str] = None
+    mjrTgYn: Optional[str] = None
+    useYn: str
+
+
+class ItemClassificationData(BaseModel):
+    """
+    A model representing the data returned from an item classification request.
+    """
+    itemClsList: list[ItemClassification] = []
 
 
 class ItemClassificationResponse(BaseModel):
@@ -29,4 +36,4 @@ class ItemClassificationResponse(BaseModel):
     resultCd: str
     resultMsg: str
     resultDt: str
-    data: Optional[list[ItemClassification]] = None
+    data: Optional[ItemClassificationData] = None
