@@ -9,7 +9,6 @@ from app.models.code import CodeResponse
 from app.models.initialization import InitInfoResponse
 from app.models.item_classification import (
     ItemClassificationData,
-    ItemClassificationRequest,
     ItemClassificationResponse,
 )
 
