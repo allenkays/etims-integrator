@@ -7,6 +7,9 @@ import httpx
 from app.clients.vscu_client import VSCUClient
 from app.models.code import CodeResponse
 from app.models.initialization import InitInfoResponse
+from app.models.item_classification import (
+    ItemClassificationResponse,
+)
 
 
 @pytest.fixture
@@ -354,3 +357,91 @@ class TestVSCUClientGetCodes:
 
             with pytest.raises(httpx.HTTPStatusError):
                 await vscu_client.get_codes(payload)
+
+
+class TestVSCUClientItemClassifications:
+    @pytest.mark.asyncio
+    async def test_get_item_classifications(
+        self,
+        vscu_client,
+    ):
+        payload = {
+            "tin": "A123456789Z",
+            "bhfId": "00",
+            "lastReqDt": "20180523000000",
+        }
+
+        response_data = {
+            "resultCd": "000",
+            "resultMsg": "Successful",
+            "resultDt": "20260915190000",
+            "data": [],
+        }
+
+        with patch("httpx.AsyncClient.post") as mock_post:
+            mock_response = MagicMock()
+            mock_response.json.return_value = response_data
+            mock_response.raise_for_status.return_value = None
+            mock_post.return_value = mock_response
+
+            result = await vscu_client.get_item_classifications(
+                payload
+            )
+
+        assert isinstance(result, ItemClassificationResponse)
+        assert result.resultCd == "000"
+        assert result.data == []
+
+    @pytest.mark.asyncio
+    async def test_correct_item_classification_url(
+        self,
+        vscu_client,
+    ):
+        payload = {
+            "tin": "A123456789Z",
+            "bhfId": "00",
+            "lastReqDt": "20180523000000",
+        }
+
+        with patch("httpx.AsyncClient.post") as mock_post:
+            mock_response = MagicMock()
+            mock_response.json.return_value = {
+                "resultCd": "000",
+                "resultMsg": "Successful",
+                "resultDt": "20260915190000",
+                "data": [],
+            }
+            mock_response.raise_for_status.return_value = None
+            mock_post.return_value = mock_response
+
+            await vscu_client.get_item_classifications(payload)
+
+            mock_post.assert_called_once_with(
+                "http://localhost:8088/itemClass/selectItemsClass",
+                json=payload,
+            )
+
+    @pytest.mark.asyncio
+    async def test_item_classification_http_error(
+        self,
+        vscu_client,
+    ):
+        payload = {
+            "tin": "A123456789Z",
+            "bhfId": "00",
+            "lastReqDt": "20180523000000",
+        }
+
+        with patch("httpx.AsyncClient.post") as mock_post:
+            mock_response = MagicMock()
+            mock_response.raise_for_status.side_effect = (
+                httpx.HTTPStatusError(
+                    "Server error",
+                    request=MagicMock(),
+                    response=MagicMock(),
+                )
+            )
+            mock_post.return_value = mock_response
+
+            with pytest.raises(httpx.HTTPStatusError):
+                await vscu_client.get_item_classifications(payload)
