@@ -2,13 +2,14 @@
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-
-from app.services.initialization import InitializationService
 from app.clients.vscu_client import VSCUClient
+from app.models.code import CodeRequest, CodeResponse
 from app.models.initialization import (
     InitInfoRequest,
     InitInfoResponse,
 )
+from app.services.code import CodeService
+from app.services.initialization import InitializationService
 
 
 @pytest.fixture
@@ -255,3 +256,119 @@ class TestInitializationServiceInitialize:
 
         # Verify client was called twice
         assert mock_vscu_client.initialize.call_count == 2
+
+
+@pytest.fixture
+def code_service(mock_vscu_client):
+    """Create a CodeService with a mocked client."""
+    return CodeService(vscu_client=mock_vscu_client)
+
+
+@pytest.mark.asyncio
+class TestCodeService:
+    """Tests for the CodeService."""
+
+    async def test_successful_code_sync(
+        self,
+        code_service,
+        mock_vscu_client
+    ):
+        """Test successful code synchronization."""
+        request = CodeRequest(
+            tin="123456789",
+            bhfId="BRN001",
+            lastReqDt="20240101120000"
+        )
+
+        mock_response = CodeResponse(
+            resultCd="000",
+            resultMsg="Successful",
+            resultDt="2024-01-01T12:00:00Z",
+            data={
+                "clsList": [
+                    {
+                        "cdCls": "04",
+                        "cdClsNm": "Tax Type",
+                        "useYn": "Y",
+                        "dtlList": [
+                            {
+                                "cd": "A",
+                                "cdNm": "AEX",
+                                "srtOrd": 1,
+                                "useYn": "Y"
+                            }
+                        ]
+                    }
+                ]
+            }
+        )
+
+        mock_vscu_client.get_codes = AsyncMock(
+            return_value=mock_response
+        )
+
+        response = await code_service.get_codes(request)
+
+        assert isinstance(response, CodeResponse)
+        assert response.resultCd == "000"
+        assert response.data.clsList[0].cdCls == "04"
+        assert response.data.clsList[0].dtlList[0].cd == "A"
+
+        mock_vscu_client.get_codes.assert_called_once()
+
+    async def test_request_payload_conversion(
+        self,
+        code_service,
+        mock_vscu_client
+    ):
+        """Test CodeRequest is converted to the correct payload."""
+        request = CodeRequest(
+            tin="123456789",
+            bhfId="BRN001",
+            lastReqDt="20240101120000"
+        )
+
+        mock_response = CodeResponse(
+            resultCd="000",
+            resultMsg="Successful",
+            resultDt="2024-01-01T12:00:00Z"
+        )
+
+        mock_vscu_client.get_codes = AsyncMock(
+            return_value=mock_response
+        )
+
+        await code_service.get_codes(request)
+
+        payload = mock_vscu_client.get_codes.call_args[0][0]
+
+        assert isinstance(payload, dict)
+        assert payload["tin"] == "123456789"
+        assert payload["bhfId"] == "BRN001"
+        assert payload["lastReqDt"] == "20240101120000"
+
+    async def test_response_returned_unchanged(
+        self,
+        code_service,
+        mock_vscu_client
+    ):
+        """Test service returns the VSCU response unchanged."""
+        request = CodeRequest(
+            tin="123456789",
+            bhfId="BRN001",
+            lastReqDt="20240101120000"
+        )
+
+        mock_response = CodeResponse(
+            resultCd="000",
+            resultMsg="Successful",
+            resultDt="2024-01-01T12:00:00Z"
+        )
+
+        mock_vscu_client.get_codes = AsyncMock(
+            return_value=mock_response
+        )
+
+        response = await code_service.get_codes(request)
+
+        assert response == mock_response

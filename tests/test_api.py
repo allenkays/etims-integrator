@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
 
 from app.main import app
+from app.models.code import CodeResponse
 from app.models.initialization import InitInfoResponse
 
 
@@ -336,3 +337,111 @@ class TestAppMetadata:
         """Test that app has the expected routes."""
         routes = [route.path for route in app.routes]
         assert "/initialize" in routes
+
+
+@pytest.fixture
+def sample_code_response():
+    """Create a sample CodeResponse for testing."""
+    return CodeResponse(
+        resultCd="000",
+        resultMsg="Successful",
+        resultDt="2024-01-01T12:00:00Z",
+        data={
+            "clsList": [
+                {
+                    "cdCls": "04",
+                    "cdClsNm": "Tax Type",
+                    "useYn": "Y",
+                    "dtlList": [
+                        {
+                            "cd": "A",
+                            "cdNm": "AEX",
+                            "srtOrd": 1,
+                            "useYn": "Y"
+                        }
+                    ]
+                }
+            ]
+        }
+    )
+
+
+class TestCodesEndpoint:
+    """Tests for the /codes endpoint."""
+
+    def test_successful_code_sync(
+        self,
+        client,
+        sample_code_response
+    ):
+        """Test successful code synchronization."""
+        payload = {
+            "tin": "123456789",
+            "bhfId": "BRN001",
+            "lastReqDt": "20240101120000"
+        }
+
+        with patch(
+            "app.main.code_service.get_codes",
+            new_callable=AsyncMock
+        ) as mock_codes:
+            mock_codes.return_value = sample_code_response
+
+            response = client.post("/codes", json=payload)
+
+            assert response.status_code == 200
+
+            data = response.json()
+
+            assert data["resultCd"] == "000"
+            assert data["resultMsg"] == "Successful"
+            assert data["data"]["clsList"][0]["cdCls"] == "04"
+            assert (
+                data["data"]["clsList"][0]["dtlList"][0]["cd"]
+                == "A"
+            )
+
+    def test_missing_tin(self, client):
+        """Test Code API with missing tin."""
+        payload = {
+            "bhfId": "BRN001",
+            "lastReqDt": "20240101120000"
+        }
+
+        response = client.post("/codes", json=payload)
+
+        assert response.status_code == 422
+
+    def test_missing_bhfid(self, client):
+        """Test Code API with missing bhfId."""
+        payload = {
+            "tin": "123456789",
+            "lastReqDt": "20240101120000"
+        }
+
+        response = client.post("/codes", json=payload)
+
+        assert response.status_code == 422
+
+    def test_missing_last_request_date(self, client):
+        """Test Code API with missing lastReqDt."""
+        payload = {
+            "tin": "123456789",
+            "bhfId": "BRN001"
+        }
+
+        response = client.post("/codes", json=payload)
+
+        assert response.status_code == 422
+
+    def test_codes_endpoint_method(self, client):
+        """Test that /codes only accepts POST."""
+        response = client.get("/codes")
+
+        assert response.status_code == 405
+
+    def test_codes_endpoint_exists(self, client):
+        """Test that /codes endpoint exists."""
+        response = client.post("/codes", json={})
+
+        assert response.status_code == 422
