@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 
 from app.clients.vscu_client import VSCUClient
+from app.models.code import CodeResponse
 from app.models.initialization import InitInfoResponse
 
 
@@ -233,3 +234,123 @@ class TestVSCUClientInitialize:
 
             call_args = mock_client.post.call_args
             assert call_args.kwargs["json"] == payload
+
+
+@pytest.mark.asyncio
+class TestVSCUClientGetCodes:
+    """Tests for VSCUClient.get_codes."""
+
+    async def test_successful_code_sync(self, vscu_client):
+        """Test successful code synchronization request."""
+        payload = {
+            "tin": "123456789",
+            "bhfId": "BRN001",
+            "lastReqDt": "20240101120000"
+        }
+
+        mock_response_data = {
+            "resultCd": "000",
+            "resultMsg": "Successful",
+            "resultDt": "2024-01-01T12:00:00Z",
+            "data": {
+                "clsList": [
+                    {
+                        "cdCls": "04",
+                        "cdClsNm": "Tax Type",
+                        "cdClsDesc": "Tax type classification",
+                        "useYn": "Y",
+                        "dtlList": [
+                            {
+                                "cd": "A",
+                                "cdNm": "AEX",
+                                "cdDesc": "Exempt",
+                                "srtOrd": 1,
+                                "useYn": "Y"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client_class.return_value.__aenter__.return_value = (
+                mock_client
+            )
+
+            mock_response = MagicMock()
+            mock_response.json.return_value = mock_response_data
+            mock_response.raise_for_status = MagicMock()
+            mock_client.post = AsyncMock(return_value=mock_response)
+
+            response = await vscu_client.get_codes(payload)
+
+            assert isinstance(response, CodeResponse)
+            assert response.resultCd == "000"
+            assert response.data.clsList[0].cdCls == "04"
+            assert response.data.clsList[0].dtlList[0].cd == "A"
+
+    async def test_correct_code_url(self, vscu_client):
+        """Test that the correct Code API URL is used."""
+        payload = {
+            "tin": "123456789",
+            "bhfId": "BRN001",
+            "lastReqDt": "20240101120000"
+        }
+
+        mock_response_data = {
+            "resultCd": "000",
+            "resultMsg": "Successful",
+            "resultDt": "2024-01-01T12:00:00Z"
+        }
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client_class.return_value.__aenter__.return_value = (
+                mock_client
+            )
+
+            mock_response = MagicMock()
+            mock_response.json.return_value = mock_response_data
+            mock_response.raise_for_status = MagicMock()
+            mock_client.post = AsyncMock(return_value=mock_response)
+
+            await vscu_client.get_codes(payload)
+
+            expected_url = (
+                "http://localhost:8088/code/selectCode"
+            )
+
+            mock_client.post.assert_called_once_with(
+                expected_url,
+                json=payload
+            )
+
+    async def test_code_sync_http_error(self, vscu_client):
+        """Test HTTP error handling for Code API."""
+        payload = {
+            "tin": "123456789",
+            "bhfId": "BRN001",
+            "lastReqDt": "20240101120000"
+        }
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client_class.return_value.__aenter__.return_value = (
+                mock_client
+            )
+
+            mock_response = MagicMock()
+            mock_response.raise_for_status.side_effect = (
+                httpx.HTTPStatusError(
+                    "500 Server Error",
+                    request=MagicMock(),
+                    response=mock_response
+                )
+            )
+
+            mock_client.post = AsyncMock(return_value=mock_response)
+
+            with pytest.raises(httpx.HTTPStatusError):
+                await vscu_client.get_codes(payload)

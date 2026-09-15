@@ -2,7 +2,13 @@
 
 import pytest
 from pydantic import ValidationError
-
+from app.models.code import (
+    CodeRequest,
+    CodeDetail,
+    CodeClassification,
+    CodeData,
+    CodeResponse,
+)
 from app.models.initialization import (
     InitInfoRequest,
     InitTaxpayer,
@@ -287,3 +293,111 @@ class TestInitInfoResponse:
         response = InitInfoResponse.model_validate(data)
         assert response.resultCd == "00"
         assert response.data.info.taxpayer.tin == "123456789"
+
+
+class TestCodeModels:
+    """Tests for Code synchronization models."""
+
+    def test_code_request(self):
+        """Test creating a CodeRequest."""
+        request = CodeRequest(
+            tin="123456789",
+            bhfId="BRN001",
+            lastReqDt="20240101120000"
+        )
+
+        assert request.tin == "123456789"
+        assert request.bhfId == "BRN001"
+        assert request.lastReqDt == "20240101120000"
+
+    def test_code_request_requires_all_fields(self):
+        """Test CodeRequest requires all fields."""
+        with pytest.raises(ValueError):
+            CodeRequest(
+                tin="123456789",
+                bhfId="BRN001"
+            )
+
+    def test_code_detail(self):
+        """Test creating a CodeDetail."""
+        detail = CodeDetail(
+            cd="A",
+            cdNm="AEX",
+            cdDesc="Exempt",
+            srtOrd=1,
+            useYn="Y"
+        )
+
+        assert detail.cd == "A"
+        assert detail.cdNm == "AEX"
+        assert detail.cdDesc == "Exempt"
+        assert detail.srtOrd == 1
+        assert detail.useYn == "Y"
+
+    def test_code_classification(self):
+        """Test creating a CodeClassification."""
+        classification = CodeClassification(
+            cdCls="04",
+            cdClsNm="Tax Type",
+            cdClsDesc="Tax type classification",
+            useYn="Y",
+            dtlList=[
+                CodeDetail(
+                    cd="A",
+                    cdNm="AEX",
+                    srtOrd=1,
+                    useYn="Y"
+                )
+            ]
+        )
+
+        assert classification.cdCls == "04"
+        assert classification.cdClsNm == "Tax Type"
+        assert classification.useYn == "Y"
+        assert len(classification.dtlList) == 1
+        assert classification.dtlList[0].cd == "A"
+
+    def test_code_data(self):
+        """Test creating CodeData."""
+        data = CodeData(
+            clsList=[
+                CodeClassification(
+                    cdCls="04",
+                    cdClsNm="Tax Type",
+                    useYn="Y"
+                )
+            ]
+        )
+
+        assert len(data.clsList) == 1
+        assert data.clsList[0].cdCls == "04"
+
+    def test_code_response(self):
+        """Test creating a CodeResponse."""
+        response = CodeResponse(
+            resultCd="000",
+            resultMsg="Successful",
+            resultDt="2024-01-01T12:00:00Z",
+            data={
+                "clsList": [
+                    {
+                        "cdCls": "04",
+                        "cdClsNm": "Tax Type",
+                        "useYn": "Y",
+                        "dtlList": [
+                            {
+                                "cd": "A",
+                                "cdNm": "AEX",
+                                "srtOrd": 1,
+                                "useYn": "Y"
+                            }
+                        ]
+                    }
+                ]
+            }
+        )
+
+        assert response.resultCd == "000"
+        assert response.resultMsg == "Successful"
+        assert len(response.data.clsList) == 1
+        assert response.data.clsList[0].dtlList[0].cd == "A"

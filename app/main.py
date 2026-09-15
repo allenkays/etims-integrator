@@ -8,7 +8,9 @@ from fastapi import FastAPI
 
 from app.clients.vscu_client import VSCUClient
 from app.config import VSCU_BASE_URL
+from app.models.code import CodeRequest
 from app.models.initialization import InitInfoRequest
+from app.services.code import CodeService
 from app.services.initialization import InitializationService
 
 
@@ -19,6 +21,10 @@ vscu_client = VSCUClient(
 )
 
 initialization_service = InitializationService(
+    vscu_client=vscu_client
+)
+
+code_service = CodeService(
     vscu_client=vscu_client
 )
 
@@ -34,3 +40,15 @@ async def initialize(request: InitInfoRequest):
         The serialized response from the VSCU initialization endpoint.
     """
     return await initialization_service.initialize(request)
+
+
+@app.post("/codes")
+async def get_codes(request: CodeRequest):
+    """Fetch code data from the upstream VSCU API.
+
+    Args:
+        request: The code request payload containing the request parameters.
+    Returns:
+        The serialized response from the VSCU code endpoint.
+    """
+    return await code_service.get_codes(request)
